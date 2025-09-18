@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # Frontend
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - ms_albergues
+      - ms_alertas
+    networks:
+      - sorora_network
+
+  # Microservicio de Albergues
+  ms_albergues:
+    build: ./ms_albergues
+    ports:
+      - "10000:10000"
+    environment:
+      - MONGODB_URL=mongodb://mongodb:27017/
+      - MONGODB_DB=sorora
+    depends_on:
+      - mongodb
+    networks:
+      - sorora_network
+    volumes:
+      - ./ms_albergues:/app
+    restart: always
+
+  # Microservicio de Alertas
+  ms_alertas:
+    build: ./ms_alertas
+    ports:
+      - "10001:10000"  # Mapeado a un puerto diferente para evitar conflictos
+    environment:
+      - MONGODB_URL=mongodb://mongodb:27017/
+      - MONGODB_DB=sorora
+    depends_on:
+      - mongodb
+    networks:
+      - sorora_network
+    volumes:
+      - ./ms_alertas:/app
+    restart: always
+
+  # Base de datos MongoDB
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - sorora_network
+    restart: always
+    environment:
+      - MONGO_INITDB_DATABASE=sorora
+
+networks:
+  sorora_network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local

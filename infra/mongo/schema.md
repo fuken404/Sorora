@@ -1,0 +1,13 @@
+*ALERTS*
+{
+  id:
+  location:
+}
+*ALBERGUES*
+{
+  id:
+  location:
+  name:
+  availability:
+  destiny:
+}
