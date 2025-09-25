@@ -1,16 +1,23 @@
+"""
+Módulo principal de la API Sorora 🚨
+
+Este archivo configura la aplicación FastAPI, incluyendo middlewares,
+routers, documentación y un health check básico.
+"""
+
+import os
+import sys
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.openapi.utils import get_openapi
-import sys
-import os
 
 # Agregar las rutas de los microservicios al path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from ms_albergues.app.routes import shelters_routes
-from ms_alertas.app.routes import alerts_route
+from ms_albergues.app.routes import shelters_routes  # pylint: disable=wrong-import-position
+from ms_alertas.app.routes import alerts_route  # pylint: disable=wrong-import-position
 
-description = """
+
+DESCRIPTION = """
 # Sorora API 🚨
 
 API unificada para el sistema Sorora de alerta y protección para mujeres.
@@ -45,7 +52,7 @@ API unificada para el sistema Sorora de alerta y protección para mujeres.
 
 app = FastAPI(
     title="Sorora API",
-    description=description,
+    description=DESCRIPTION,
     version="1.0.0",
     openapi_url="/api/openapi.json",
     docs_url="/api/docs",
@@ -54,18 +61,18 @@ app = FastAPI(
     contact={
         "name": "Equipo Sorora",
         "url": "https://github.com/tuorganizacion/sorora",
-        "email": "soporte@sorora.com"
+        "email": "soporte@sorora.com",
     },
     license_info={
         "name": "MIT",
-        "url": "https://opensource.org/licenses/MIT"
-    }
+        "url": "https://opensource.org/licenses/MIT",
+    },
 )
 
-# Configurar CORS
+# Configuración de CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # En producción, cambiar por los orígenes específicos
+    allow_origins=["*"],  # ⚠️ En producción, cambiar por orígenes específicos
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -75,20 +82,25 @@ app.add_middleware(
 app.include_router(
     shelters_routes.router,
     prefix="/shelters",
-    tags=["shelters"]
+    tags=["shelters"],
 )
 
 app.include_router(
     alerts_route.router,
     prefix="/alerts",
-    tags=["alerts"]
+    tags=["alerts"],
 )
 
-# Ruta de health check
-@app.get("/health")
+
+@app.get("/health", tags=["health"])
 async def health_check():
+    """
+    Verifica el estado básico del servicio y sus microservicios.
+    """
     return {"status": "ok", "services": ["shelters", "alerts"]}
 
+
 if __name__ == "__main__":
-    import uvicorn
+    import uvicorn  # pylint: disable=import-outside-toplevel
+
     uvicorn.run(app, host="0.0.0.0", port=10000)
