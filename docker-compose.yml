@@ -1,0 +1,30 @@
+# Entorno local con MongoDB. Corre en modo demo salvo que definas MODE=live en .env.
+services:
+  api:
+    build: .
+    ports:
+      - "127.0.0.1:${PORT:-8000}:8000"
+    environment:
+      STORAGE: mongo
+      MONGO_URI: mongodb://mongo:27017
+      MODE: ${MODE:-demo}
+      ADMIN_API_KEY: ${ADMIN_API_KEY:-}
+      ALERT_API_KEY: ${ALERT_API_KEY:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  mongo:
+    image: mongo:8
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 })"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mongo-data:

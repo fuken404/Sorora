@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sorora · Directorio de refugios</title>
+  <meta name="description" content="Demostración de un directorio de refugios y alerta SOS para mujeres. No avisa a nadie: en una emergencia en Colombia, llama al 155 o al 123.">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <aside class="crisis" role="note">
+    <p class="crisis__text">
+      <strong data-i18n="crisisLead"></strong>
+      <span data-i18n="crisisBody"></span>
+    </p>
+    <p class="crisis__lines">
+      <a href="tel:155"><b>155</b> <span data-i18n="line155"></span></a>
+      <a href="tel:123"><b>123</b> <span data-i18n="line123"></span></a>
+    </p>
+  </aside>
+
+  <header class="masthead">
+    <div class="masthead__brand">
+      <h1>Sorora</h1>
+      <p data-i18n="tagline"></p>
+    </div>
+    <div class="langs" role="group" aria-label="Idioma / Language">
+      <button type="button" data-lang="es">ES</button>
+      <button type="button" data-lang="en">EN</button>
+    </div>
+  </header>
+
+  <main class="board">
+    <section class="atlas" aria-labelledby="atlas-title">
+      <div class="atlas__head">
+        <h2 id="atlas-title" data-i18n="mapTitle"></h2>
+        <p data-i18n="mapHint"></p>
+      </div>
+      <div id="map" role="application" data-i18n-label="mapLabel"></div>
+    </section>
+
+    <section class="directory" aria-labelledby="directory-title">
+      <div class="directory__head">
+        <h2 id="directory-title" data-i18n="directoryTitle"></h2>
+        <span class="tag" data-i18n="fictional"></span>
+      </div>
+      <ol id="shelters" class="shelters"></ol>
+    </section>
+
+    <section class="signal" aria-labelledby="signal-title">
+      <h2 id="signal-title" data-i18n="signalTitle"></h2>
+      <p id="signal-body" data-i18n="signalBody"></p>
+      <label id="key-field" class="key" hidden>
+        <span data-i18n="keyLabel"></span>
+        <input id="alert-key" type="password" autocomplete="off">
+      </label>
+      <button id="sos" type="button" class="sos"></button>
+      <div id="result" class="result" aria-live="polite" hidden></div>
+    </section>
+  </main>
+
+  <footer class="colophon">
+    <div>
+      <h2 data-i18n="howTitle"></h2>
+      <ol class="how">
+        <li data-i18n="how1"></li>
+        <li data-i18n="how2"></li>
+        <li data-i18n="how3"></li>
+      </ol>
+    </div>
+    <p class="colophon__links">
+      <a href="api/docs" data-i18n="docs"></a>
+      <a href="https://github.com/fuken404/Sorora" data-i18n="code"></a>
+      <span><span data-i18n="by"></span> <a href="https://fuken404.dev">Maycol Fuquene</a></span>
+    </p>
+  </footer>
+
+  <template id="shelter-row">
+    <li class="shelter">
+      <button type="button" class="shelter__button">
+        <span class="shelter__number"></span>
+        <span class="shelter__body">
+          <span class="shelter__name"></span>
+          <span class="shelter__meta"></span>
+        </span>
+        <span class="shelter__room"></span>
+      </button>
+    </li>
+  </template>
+
+  <script src="vendor/leaflet/leaflet.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
