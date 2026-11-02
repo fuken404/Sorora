@@ -2,7 +2,8 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2a1436">
   <title>Sorora · Directorio de refugios</title>
   <meta name="description" content="Demostración de un directorio de refugios y alerta SOS para mujeres. No avisa a nadie: en una emergencia en Colombia, llama al 155 o al 123.">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -24,61 +25,65 @@
     </p>
   </aside>
 
-  <header class="masthead">
-    <div class="masthead__brand">
+  <main class="stage">
+    <div id="map"></div>
+
+    <header class="brand">
       <h1>Sorora</h1>
-      <p data-i18n="tagline"></p>
-    </div>
+      <p class="brand__tagline" data-i18n="tagline"></p>
+    </header>
     <div class="langs" role="group" aria-label="Idioma / Language">
       <button type="button" data-lang="es">ES</button>
       <button type="button" data-lang="en">EN</button>
     </div>
-  </header>
+    <p id="hint" class="hint" data-i18n="mapHint"></p>
 
-  <main class="board">
-    <section class="atlas" aria-labelledby="atlas-title">
-      <div class="atlas__head">
-        <h2 id="atlas-title" data-i18n="mapTitle"></h2>
-        <p data-i18n="mapHint"></p>
-      </div>
-      <div id="map" role="application" data-i18n-label="mapLabel"></div>
-    </section>
-
-    <section class="directory" aria-labelledby="directory-title">
-      <div class="directory__head">
-        <h2 id="directory-title" data-i18n="directoryTitle"></h2>
-        <span class="tag" data-i18n="fictional"></span>
-      </div>
-      <ol id="shelters" class="shelters"></ol>
-    </section>
-
-    <section class="signal" aria-labelledby="signal-title">
-      <h2 id="signal-title" data-i18n="signalTitle"></h2>
-      <p id="signal-body" data-i18n="signalBody"></p>
-      <label id="key-field" class="key" hidden>
-        <span data-i18n="keyLabel"></span>
-        <input id="alert-key" type="password" autocomplete="off">
-      </label>
+    <section id="sheet" class="sheet" data-open="false">
       <button id="sos" type="button" class="sos"></button>
-      <div id="result" class="result" aria-live="polite" hidden></div>
+
+      <button id="handle" type="button" class="sheet__handle" aria-expanded="false" aria-controls="sheet-body">
+        <span class="sheet__grip" aria-hidden="true"></span>
+        <span class="sheet__title" data-i18n="directoryTitle"></span>
+        <span id="summary" class="sheet__summary"></span>
+        <svg class="sheet__chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 15l7-7 7 7" fill="none" stroke="currentColor" stroke-width="3"/></svg>
+      </button>
+
+      <div id="sheet-body" class="sheet__body">
+        <div id="result" class="result" aria-live="polite" hidden></div>
+
+        <div class="directory">
+          <div class="directory__head">
+            <h2 data-i18n="directoryTitle"></h2>
+            <span class="tag" data-i18n="fictional"></span>
+          </div>
+          <ol id="shelters" class="shelters"></ol>
+        </div>
+
+        <div class="signal">
+          <h2 data-i18n="signalTitle"></h2>
+          <p data-i18n="signalBody"></p>
+          <label id="key-field" class="key" hidden>
+            <span data-i18n="keyLabel"></span>
+            <input id="alert-key" type="password" autocomplete="off">
+          </label>
+        </div>
+
+        <footer class="colophon">
+          <h2 data-i18n="howTitle"></h2>
+          <ol class="how">
+            <li data-i18n="how1"></li>
+            <li data-i18n="how2"></li>
+            <li data-i18n="how3"></li>
+          </ol>
+          <p class="colophon__links">
+            <a href="api/docs" data-i18n="docs"></a>
+            <a href="https://github.com/fuken404/Sorora" data-i18n="code"></a>
+            <span><span data-i18n="by"></span> <a href="https://fuken404.dev">Maycol Fuquene</a></span>
+          </p>
+        </footer>
+      </div>
     </section>
   </main>
-
-  <footer class="colophon">
-    <div>
-      <h2 data-i18n="howTitle"></h2>
-      <ol class="how">
-        <li data-i18n="how1"></li>
-        <li data-i18n="how2"></li>
-        <li data-i18n="how3"></li>
-      </ol>
-    </div>
-    <p class="colophon__links">
-      <a href="api/docs" data-i18n="docs"></a>
-      <a href="https://github.com/fuken404/Sorora" data-i18n="code"></a>
-      <span><span data-i18n="by"></span> <a href="https://fuken404.dev">Maycol Fuquene</a></span>
-    </p>
-  </footer>
 
   <template id="shelter-row">
     <li class="shelter">

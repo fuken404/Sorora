@@ -4,15 +4,16 @@ const OSM = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreet
 
 const TEXT = {
   es: {
-    crisisLead: 'Esto es una demostración: no avisa a nadie.',
-    crisisBody: 'Los albergues son inventados. Si estás en peligro en Colombia, llama:',
+    crisisLead: 'Demostración: no avisa a nadie.',
+    crisisBody: 'Si estás en peligro en Colombia, llama:',
     crisisLeadLive: 'Instancia privada: las alertas sí se envían.',
     crisisBodyLive: 'Si no recibes confirmación, llama de inmediato:',
-    line155: 'orientación a mujeres', line123: 'emergencias',
+    line155: 'Línea mujeres', line123: 'Emergencias',
     tagline: 'Directorio de refugios y señal de alerta.',
-    mapTitle: 'El mapa', mapHint: 'Arrastra el marcador naranja o toca el mapa: es un punto de ejemplo, no tu ubicación.',
-    mapHintLive: 'El marcador naranja es tu ubicación actual, si diste permiso. Puedes ajustarlo.',
+    mapHint: 'Mueve el marcador naranja o toca el mapa. Es un punto de ejemplo, no tu ubicación.',
+    mapHintLive: 'El marcador naranja es tu ubicación, si diste permiso. Puedes ajustarlo.',
     mapLabel: 'Mapa de albergues',
+    summary: (total, open) => `${total} albergues · ${open} con cupo`,
     directoryTitle: 'Directorio', fictional: 'Datos ficticios',
     signalTitle: 'La señal', signalBody: 'Muestra qué pasaría con una alerta desde ese punto. La ubicación no se guarda.',
     signalBodyLive: 'Envía la ubicación del marcador al contacto configurado.',
@@ -35,15 +36,16 @@ const TEXT = {
     docs: 'Documentación de la API', code: 'Código fuente', by: 'Hecho por',
   },
   en: {
-    crisisLead: 'This is a demo: nobody is notified.',
-    crisisBody: 'The shelters are made up. If you are in danger in Colombia, call:',
+    crisisLead: 'Demo: nobody is notified.',
+    crisisBody: 'If you are in danger in Colombia, call:',
     crisisLeadLive: 'Private instance: alerts are really sent.',
     crisisBodyLive: 'If you get no confirmation, call right away:',
-    line155: 'women’s support line', line123: 'emergencies',
+    line155: 'Women’s line', line123: 'Emergencies',
     tagline: 'A shelter directory and an alert signal.',
-    mapTitle: 'The map', mapHint: 'Drag the orange marker or tap the map: it is a sample point, not your location.',
-    mapHintLive: 'The orange marker is your current location, if you allowed it. You can adjust it.',
+    mapHint: 'Move the orange marker or tap the map. It is a sample point, not your location.',
+    mapHintLive: 'The orange marker is your location, if you allowed it. You can adjust it.',
     mapLabel: 'Shelter map',
+    summary: (total, open) => `${total} shelters · ${open} with room`,
     directoryTitle: 'Directory', fictional: 'Fictional data',
     signalTitle: 'The signal', signalBody: 'Shows what would happen with an alert from that point. The location is not stored.',
     signalBodyLive: 'Sends the marker location to the configured contact.',
@@ -78,22 +80,64 @@ let shelters = []
 let lastResult = null
 const markers = new Map()
 
-const map = L.map('map', { zoomControl: true }).setView(START, 12)
+// Debe coincidir con la regla de panel lateral en styles.css.
+const sideLayout = matchMedia('(min-width: 900px), (orientation: landscape) and (min-width: 560px)')
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)')
+
+const map = L.map('map', { zoomControl: false, attributionControl: false }).setView(START, 12)
+L.control.zoom({ position: 'topleft' }).addTo(map)
+L.control.attribution({ position: 'bottomleft', prefix: false }).addTo(map) // el botón ocupa la otra esquina
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: OSM }).addTo(map)
+new ResizeObserver(() => map.invalidateSize()).observe($('#map')) // giro de pantalla y barras del navegador
 
 const me = L.marker(START, {
   draggable: true,
-  icon: L.divIcon({ className: '', html: '<div class="me"></div>', iconSize: [30, 30], iconAnchor: [15, 34] }),
+  icon: L.divIcon({ className: '', html: '<div class="me"></div>', iconSize: [44, 44], iconAnchor: [22, 42] }),
   zIndexOffset: 1000,
 }).addTo(map)
+
+function setSheet(open) {
+  $('#sheet').dataset.open = String(open)
+  $('#handle').setAttribute('aria-expanded', String(open))
+  if (open) $('#hint').hidden = true
+}
 
 function moved() {
   lastResult = null
   $('#result').hidden = true
+  $('#hint').hidden = true
   loadShelters()
 }
 me.on('dragend', moved)
-map.on('click', (event) => { me.setLatLng(event.latlng); moved() })
+map.on('click', (event) => {
+  // Con el panel abierto, el primer toque solo lo cierra: así no se mueve el marcador sin querer.
+  if (!sideLayout.matches && $('#sheet').dataset.open === 'true') { setSheet(false); return }
+  me.setLatLng(event.latlng)
+  moved()
+})
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && !sideLayout.matches) setSheet(false)
+})
+
+// El asa se toca o se desliza. El gesto se resuelve aquí porque tras deslizar no siempre llega un click.
+let swipeFrom = null
+const toggleSheet = () => setSheet($('#sheet').dataset.open !== 'true')
+$('#handle').addEventListener('pointerdown', (event) => {
+  swipeFrom = event.clientY
+  $('#handle').setPointerCapture(event.pointerId)
+})
+$('#handle').addEventListener('pointerup', (event) => {
+  if (swipeFrom === null) return
+  const delta = event.clientY - swipeFrom
+  swipeFrom = null
+  if (Math.abs(delta) > 24) setSheet(delta < 0)
+  else toggleSheet()
+})
+$('#handle').addEventListener('pointercancel', () => { swipeFrom = null })
+$('#handle').addEventListener('click', (event) => {
+  if (event.detail === 0) toggleSheet() // teclado y lectores de pantalla
+})
 
 function liveKey(key) {
   return mode === 'live' && TEXT[lang][`${key}Live`] ? `${key}Live` : key
@@ -107,6 +151,7 @@ function applyText() {
   })
   $('#map').setAttribute('aria-label', t.mapLabel)
   $('#sos').textContent = t[liveKey('sos')]
+  $('#sos').dataset.mode = mode
   $('#key-field').hidden = mode !== 'live'
   document.querySelectorAll('[data-lang]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)))
 }
@@ -117,6 +162,7 @@ function renderShelters() {
   markers.forEach((m) => m.remove())
   markers.clear()
   const nearestId = shelters.find((s) => s.occupancy < s.capacity)?.id
+  $('#summary').textContent = t.summary(shelters.length, shelters.filter((s) => s.occupancy < s.capacity).length)
 
   list.replaceChildren(...shelters.map((s, i) => {
     const room = s.capacity - s.occupancy
@@ -127,14 +173,15 @@ function renderShelters() {
     $('.shelter__meta', row).textContent = `${t.kind[s.purpose]} · ${t.km(s.distance_km.toLocaleString(lang))}`
     $('.shelter__room', row).textContent = room ? t.room(room) : t.full
     $('.shelter__button', row).addEventListener('click', () => {
-      map.flyTo([s.latitude, s.longitude], 14, { duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 0.6 })
+      if (!sideLayout.matches) setSheet(false)
+      map.flyTo([s.latitude, s.longitude], 14, { duration: reducedMotion.matches ? 0 : 0.6 })
     })
 
     const kind = room === 0 ? 'pin--full' : s.id === nearestId ? 'pin--near' : ''
     const marker = L.marker([s.latitude, s.longitude], {
       title: s.name,
       alt: s.name,
-      icon: L.divIcon({ className: '', html: `<div class="pin ${kind}">${i + 1}</div>`, iconSize: [34, 34], iconAnchor: [17, 17] }),
+      icon: L.divIcon({ className: '', html: `<div class="pin ${kind}">${i + 1}</div>`, iconSize: [40, 40], iconAnchor: [20, 20] }),
     }).addTo(map)
     marker.bindTooltip(s.name)
     markers.set(s.id, marker)
@@ -189,6 +236,11 @@ async function loadShelters() {
 $('#sos').addEventListener('click', async () => {
   const button = $('#sos')
   const { lat, lng } = me.getLatLng()
+  if (mode === 'live' && !$('#alert-key').value) {
+    setSheet(true)
+    $('#alert-key').focus()
+    return
+  }
   button.disabled = true
   button.textContent = TEXT[lang].sending
   try {
@@ -203,8 +255,9 @@ $('#sos').addEventListener('click', async () => {
   }
   button.disabled = false
   applyText()
+  setSheet(true)
   renderResult()
-  $('#result').scrollIntoView({ block: 'nearest' })
+  $('#sheet-body').scrollTop = 0
 })
 
 document.querySelectorAll('[data-lang]').forEach((button) => {
